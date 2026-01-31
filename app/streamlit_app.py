@@ -4,12 +4,19 @@ import numpy as np
 import joblib
 import shap
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 st.set_page_config(
     page_title="Preventive Care Prediction",
     page_icon="🏥",
     layout="wide"
 )
+
+BASE_DIR = Path(__file__).resolve().parent   # .../app
+ROOT_DIR = BASE_DIR.parent                  # .../health-preventive-care
+MODEL_PATH = ROOT_DIR / "models" / "model.joblib"
+FI_PATH = ROOT_DIR / "models" / "feature_importance.csv"
+
 
 st.markdown("""
 <style>
@@ -70,14 +77,16 @@ div.stButton > button {
 
 @st.cache_resource
 def load_model():
-    return joblib.load("../models/model.joblib")
+    if not MODEL_PATH.exists():
+        st.error(f"Model file not found: {MODEL_PATH}")
+        st.stop()
+    return joblib.load(MODEL_PATH)
 
 @st.cache_data
 def load_feature_importance():
-    try:
-        return pd.read_csv("../models/feature_importance.csv")
-    except:
-        return None
+    if FI_PATH.exists():
+        return pd.read_csv(FI_PATH)
+    return None
 
 model = load_model()
 fi_df = load_feature_importance()
